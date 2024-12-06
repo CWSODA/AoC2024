@@ -1,70 +1,46 @@
 fn main() {
     let input = std::fs::read_to_string("example.txt").unwrap();
-    println!("Value for part 1 is:\n{}", part1(&input));
-    println!("Value for part 2 is:\n{}", part2(&input));
+    let reports = parse(&input);
+    println!("Example value for part 1:\n{}", part1(&reports));
+    println!("Example value for part 2:\n{}", part2(&reports));
 
     let input = std::fs::read_to_string("input.txt").unwrap();
-    println!("Value for part 1 is:\n{}", part1(&input));
-    println!("Value for part 2 is:\n{}", part2(&input));
+    let reports = parse(&input);
+    println!("Value for part 1:\n{}", part1(&reports));
+    println!("Value for part 2:\n{}", part2(&reports));
 }
 
-fn part1(input: &str) -> i32 {
-    let mut val = 0;
-
-    'outer: for line in input.lines() {
-        let list: Vec<i32> = line
-            .split_whitespace()
-            .map(|e| e.parse::<i32>().unwrap())
-            .collect();
-
-        if !is_safe(&list) {
-            continue 'outer;
-        }
-
-        val += 1;
-    }
-
-    return val;
+fn part1(reports: &[Vec<i32>]) -> usize {
+    reports.iter().filter(|r| is_safe(r)).count()
 }
 
-fn part2(input: &str) -> i32 {
+fn part2(reports: &[Vec<i32>]) -> i32 {
     let mut val = 0;
 
-    'perline: for line in input.lines() {
-        let list: Vec<i32> = line
-            .split_whitespace()
-            .map(|e| e.parse::<i32>().unwrap())
-            .collect();
-
-        if is_safe(&list) {
+    for report in reports {
+        if is_safe(report) {
             val += 1;
-            continue 'perline;
+            continue;
         }
 
         // needs removing to potentially be safe
-        for index in 0..(list.len()) {
-            let mut temp = list.clone();
+        for index in 0..(report.len()) {
+            let mut temp = report.clone();
             temp.remove(index);
 
             if is_safe(&temp) {
                 val += 1;
-                continue 'perline;
+                break;
             }
-
-            // otherwise continue the loop
         }
     }
 
-    return val;
+    val
 }
 
 fn is_safe(temp: &[i32]) -> bool {
-    let mut list_sort = temp.to_vec();
-    list_sort.sort();
-    let mut list_rev = list_sort.clone();
-    list_rev.reverse();
-
-    if temp != list_sort && temp != list_rev {
+    // checks if all numbers are descending or ascending
+    if !temp.is_sorted() && !temp.iter().rev().is_sorted() {
         return false;
     }
 
@@ -78,5 +54,22 @@ fn is_safe(temp: &[i32]) -> bool {
         last = num;
     }
 
-    return true;
+    true
 }
+
+fn parse(input: &str) -> Vec<Vec<i32>> {
+    let mut reports = vec![];
+    for report in input.lines() {
+        reports.push(
+            report
+                .split_whitespace()
+                .map(|e| e.parse::<i32>().expect("must be number"))
+                .collect(),
+        )
+    }
+
+    reports
+}
+
+// 2,4
+// 490, 536
