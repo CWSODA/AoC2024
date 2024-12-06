@@ -4,90 +4,84 @@ use diagonal::{diagonal_pos_neg, diagonal_pos_pos, straight_y};
 
 fn main() {
     let input = std::fs::read_to_string("example.txt").unwrap();
-    println!("Value for part 1 is:\n{}", part1(&input));
-    println!("Value for part 2 is:\n{}", part2(&input));
+    let grid = parse(&input);
+    println!("Value for part 1 is:\n{}", part1(&grid));
+    println!("Value for part 2 is:\n{}", part2(&grid));
 
     let input = std::fs::read_to_string("input.txt").unwrap();
-    println!("Value for part 1 is:\n{}", part1(&input));
-    println!("Value for part 2 is:\n{}", part2(&input));
+    let grid = parse(&input);
+    println!("Value for part 1 is:\n{}", part1(&grid));
+    println!("Value for part 2 is:\n{}", part2(&grid));
 }
 
-fn part1(input: &str) -> usize {
+fn part1(grid: &[Vec<char>]) -> usize {
     let mut val = 0;
-    let mut grid: Vec<Vec<char>> = vec![];
 
-    for line in input.lines() {
-        val += line.matches("XMAS").count();
-        val += line.matches("SAMX").count();
+    for line in grid {
+        let mut window = String::new();
 
-        grid.push(line.chars().collect());
+        for c in line {
+            window.push(*c);
+            if window.len() > 4 {
+                window.remove(0);
+            }
+
+            if window == "XMAS" || window == "SAMX" {
+                val += 1;
+            }
+        }
     }
 
-    // let mut bars: Vec<String> = vec![String::new(); 10];
-
-    // for col in &grid {
-    //     for (row, c) in col.iter().enumerate() {
-    //         bars.index_mut(row).push(*c);
-    //     }
-    // }
     let bars = straight_y(&grid);
-
-    for line in bars {
-        let s: String = line.iter().map(|c| **c).collect();
-        val += s.matches("XMAS").count();
-        val += s.matches("SAMX").count();
-    }
-
-    // 1 2 3 4
-    // 2 x x x
-    // 3 x x x
-    // 4 x x x
-    // 5 x x x
     let diag1 = diagonal_pos_pos(&grid);
     let diag2 = diagonal_pos_neg(&grid);
 
+    for line in bars {
+        val += match_xmas(&line);
+    }
     for line in diag1 {
-        let s: String = line.iter().map(|c| **c).collect();
-        val += s.matches("XMAS").count();
-        val += s.matches("SAMX").count();
+        val += match_xmas(&line);
     }
     for line in diag2 {
-        let s: String = line.iter().map(|c| **c).collect();
-        val += s.matches("XMAS").count();
-        val += s.matches("SAMX").count();
+        val += match_xmas(&line);
     }
 
-    return val;
+    val
 }
 
-//println!("X-MAS at {col}, {row}");
-fn part2(input: &str) -> usize {
+fn match_xmas(input: &[&char]) -> usize {
+    let mut window = String::new();
     let mut val = 0;
 
-    let mut grid: Vec<Vec<char>> = vec![];
+    for c in input {
+        window.push(**c);
+        if window.len() > 4 {
+            window.remove(0);
+        }
 
-    for line in input.lines() {
-        grid.push(line.chars().collect());
+        if window == "XMAS" || window == "SAMX" {
+            val += 1;
+        }
     }
+
+    val
+}
+
+fn part2(grid: &[Vec<char>]) -> usize {
+    let mut val = 0;
 
     // M.M     S.M
     // .A.     .A.
     // S.S     S.M
 
-    // always a buffer for A
-    // skip the first line
-    let col_size = grid.len();
-    let row_size = grid[0].len();
-
-    for (mut col, line) in grid.iter().skip(1).enumerate() {
-        col += 1; // since skipped first
-        if col >= col_size - 1 {
+    // always letters around A, skip the first line
+    for (col, line) in grid.iter().enumerate().skip(1) {
+        if col >= grid.len() - 1 {
             // skip last
             break;
         }
-        for (mut row, c) in line.iter().skip(1).enumerate() {
-            row += 1; // since skipped first
-            if row >= row_size - 1 {
+        for (row, c) in line.iter().enumerate().skip(1) {
+            if row >= grid[0].len() - 1 {
                 // skip last
                 break;
             }
@@ -114,5 +108,12 @@ fn part2(input: &str) -> usize {
         }
     }
 
-    return val;
+    val
 }
+
+fn parse(input: &str) -> Vec<Vec<char>> {
+    input.lines().map(|line| line.chars().collect()).collect()
+}
+
+// 18, 9
+// 2578, 1972
