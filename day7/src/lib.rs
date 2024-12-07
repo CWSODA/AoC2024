@@ -9,7 +9,7 @@ use std::{
 pub fn solve(input: &str, nthreads: usize) -> (u64, u64) {
     let equations = parse(input);
     if nthreads == 0 {
-        panic!("Can;t have 0 threads!");
+        panic!("Can't have 0 threads!");
     }
 
     (
@@ -19,6 +19,7 @@ pub fn solve(input: &str, nthreads: usize) -> (u64, u64) {
 }
 
 fn part1_threaded(equations: &[Vec<u64>], nthreads: usize) -> u64 {
+    // get all equation lengths
     let eq_lengths: HashSet<usize> = equations.iter().map(|eq| eq.len()).collect();
 
     // precompile all permutations
@@ -59,6 +60,7 @@ fn part1_threaded(equations: &[Vec<u64>], nthreads: usize) -> u64 {
 }
 
 fn part2_threaded(equations: &[Vec<u64>], nthreads: usize) -> u64 {
+    // get all equation lengths
     let eq_lengths: HashSet<usize> = equations.iter().map(|eq| eq.len()).collect();
 
     // precompile all permutations
@@ -193,5 +195,3 @@ enum OP {
 
 // 3749, 11387
 // 5702958180383, 92612386119138
-
-// 2.598
