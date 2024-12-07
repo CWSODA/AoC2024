@@ -12,10 +12,9 @@ fn part1(equations: &[Vec<u64>]) -> u64 {
     let mut out = 0;
 
     for eq in equations {
-        // all operator combinations
-        // 0 is add, 1 is multiply
-        for comb in repeat_n([OP::MULT, OP::ADD], eq.len() - 2).multi_cartesian_product() {
-            // assign val to first number
+        // all operator permutations with replacement
+        'comb: for comb in repeat_n([OP::MULT, OP::ADD], eq.len() - 2).multi_cartesian_product() {
+            // assign first number to val
             let mut val = eq[1];
 
             for (num, op) in eq.iter().skip(2).zip_eq(comb) {
@@ -23,6 +22,11 @@ fn part1(equations: &[Vec<u64>]) -> u64 {
                     OP::MULT => val *= num,
                     OP::ADD => val += num,
                     _ => {}
+                }
+
+                // val only increases with each operation
+                if val > eq[0] {
+                    continue 'comb;
                 }
             }
 
@@ -41,11 +45,11 @@ fn part2(equations: &[Vec<u64>]) -> u64 {
     let mut out = 0;
 
     for eq in equations {
-        // all operator combinations
-        // 0 is add, 1 is multiply
-        for comb in repeat_n([OP::MULT, OP::ADD, OP::CONC], eq.len() - 2).multi_cartesian_product()
+        // all operator permutations with replacement
+        'comb: for comb in
+            repeat_n([OP::ADD, OP::MULT, OP::CONC], eq.len() - 2).multi_cartesian_product()
         {
-            // assign val to first number
+            // assign first number to val
             let mut val = eq[1];
 
             for (num, op) in eq.iter().skip(2).zip_eq(comb) {
@@ -53,6 +57,11 @@ fn part2(equations: &[Vec<u64>]) -> u64 {
                     OP::MULT => val *= num,
                     OP::ADD => val += num,
                     OP::CONC => val = concact_num(val, *num),
+                }
+
+                // val only increases with each operation
+                if val > eq[0] {
+                    continue 'comb;
                 }
             }
 
@@ -93,3 +102,6 @@ enum OP {
     ADD,
     CONC,
 }
+
+// 3749, 11387
+// 5702958180383, 92612386119138
