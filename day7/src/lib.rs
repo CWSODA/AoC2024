@@ -183,7 +183,7 @@ fn parse(input: &str) -> Vec<Vec<u64>> {
 }
 
 fn concact_num(n1: u64, n2: u64) -> u64 {
-    n1 * 10u64.pow(n2.to_string().len() as u32) + n2
+    n1 * 10u64.pow(n2.ilog10() + 1) + n2
 }
 
 #[derive(Clone, Copy, PartialEq)]
