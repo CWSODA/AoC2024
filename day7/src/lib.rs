@@ -2,32 +2,104 @@ use itertools::Itertools;
 use std::{
     collections::{HashMap, HashSet},
     iter::repeat_n,
+    sync::Arc,
+    thread,
 };
 
-pub fn solve(input: &str) -> (u64, u64) {
+pub fn solve(input: &str, nthreads: usize) -> (u64, u64) {
     let equations = parse(input);
+    if nthreads == 0 {
+        panic!("Can;t have 0 threads!");
+    }
 
-    (part1(&equations), part2(&equations))
+    (
+        part1_threaded(&equations, nthreads),
+        part2_threaded(&equations, nthreads),
+    )
 }
 
-fn part1(equations: &[Vec<u64>]) -> u64 {
-    let mut out = 0;
+fn part1_threaded(equations: &[Vec<u64>], nthreads: usize) -> u64 {
+    let eq_lengths: HashSet<usize> = equations.iter().map(|eq| eq.len()).collect();
 
-    let mut eq_lengths = HashSet::new();
-    for eq in equations {
-        eq_lengths.insert(eq.len());
-    }
-    let combs: HashMap<usize, Vec<Vec<OP>>> = eq_lengths
-        .into_iter()
-        .map(|len| {
-            (
-                len,
-                repeat_n([OP::ADD, OP::MULT], len - 2)
-                    .multi_cartesian_product()
-                    .collect(),
-            )
+    // precompile all permutations
+    let combs: Arc<HashMap<usize, Vec<Vec<OP>>>> = Arc::new(
+        eq_lengths
+            .into_iter()
+            .map(|len| {
+                (
+                    len,
+                    repeat_n([OP::ADD, OP::MULT], len - 2)
+                        .multi_cartesian_product()
+                        .collect(),
+                )
+            })
+            .collect(),
+    );
+
+    let chunk_size = if nthreads > equations.len() {
+        equations.len()
+    } else {
+        equations.len() / nthreads
+    };
+
+    // create threadpool
+    let threads: Vec<_> = equations
+        .chunks(chunk_size)
+        .map(|chunk| {
+            let combs = combs.clone();
+            let chunk = chunk.to_vec();
+            thread::spawn(move || part1(&(chunk.to_vec()), &combs))
         })
         .collect();
+
+    threads
+        .into_iter()
+        .map(|handle| handle.join().unwrap())
+        .sum()
+}
+
+fn part2_threaded(equations: &[Vec<u64>], nthreads: usize) -> u64 {
+    let eq_lengths: HashSet<usize> = equations.iter().map(|eq| eq.len()).collect();
+
+    // precompile all permutations
+    let combs: Arc<HashMap<usize, Vec<Vec<OP>>>> = Arc::new(
+        eq_lengths
+            .into_iter()
+            .map(|len| {
+                (
+                    len,
+                    repeat_n([OP::ADD, OP::MULT, OP::CONC], len - 2)
+                        .multi_cartesian_product()
+                        .collect(),
+                )
+            })
+            .collect(),
+    );
+
+    let chunk_size = if nthreads > equations.len() {
+        equations.len()
+    } else {
+        equations.len() / nthreads
+    };
+
+    // create threadpool
+    let threads: Vec<_> = equations
+        .chunks(chunk_size)
+        .map(|chunk| {
+            let combs = combs.clone();
+            let chunk = chunk.to_vec();
+            thread::spawn(move || part2(&(chunk.to_vec()), &combs))
+        })
+        .collect();
+
+    threads
+        .into_iter()
+        .map(|handle| handle.join().unwrap())
+        .sum()
+}
+
+fn part1(equations: &[Vec<u64>], combs: &HashMap<usize, Vec<Vec<OP>>>) -> u64 {
+    let mut out = 0;
 
     for eq in equations {
         // all operator permutations with replacement
@@ -59,24 +131,8 @@ fn part1(equations: &[Vec<u64>]) -> u64 {
     out
 }
 
-fn part2(equations: &[Vec<u64>]) -> u64 {
+fn part2(equations: &[Vec<u64>], combs: &HashMap<usize, Vec<Vec<OP>>>) -> u64 {
     let mut out = 0;
-
-    let mut eq_lengths = HashSet::new();
-    for eq in equations {
-        eq_lengths.insert(eq.len());
-    }
-    let combs: HashMap<usize, Vec<Vec<OP>>> = eq_lengths
-        .into_iter()
-        .map(|len| {
-            (
-                len,
-                repeat_n([OP::ADD, OP::MULT, OP::CONC], len - 2)
-                    .multi_cartesian_product()
-                    .collect(),
-            )
-        })
-        .collect();
 
     for eq in equations {
         // all operator permutations with replacement
@@ -86,7 +142,7 @@ fn part2(equations: &[Vec<u64>]) -> u64 {
             // assign first number to val
             let mut val = eq[1];
 
-            for (num, op) in eq.into_iter().skip(2).zip_eq(comb) {
+            for (num, op) in eq.iter().skip(2).zip_eq(comb) {
                 match op {
                     OP::MULT => val *= num,
                     OP::ADD => val += num,
@@ -137,42 +193,5 @@ enum OP {
 
 // 3749, 11387
 // 5702958180383, 92612386119138
-//92612386119138
-//30383733113065
 
-/*
-fn part2(equations: &[Vec<u64>]) -> u64 {
-    let mut out = 0;
-
-    for eq in equations {
-        // all operator permutations with replacement
-        'comb: for comb in
-            repeat_n([OP::ADD, OP::MULT, OP::CONC], eq.len() - 2).multi_cartesian_product()
-        {
-            // assign first number to val
-            let mut val = eq[1];
-
-            for (num, op) in eq.iter().skip(2).zip_eq(comb) {
-                match op {
-                    OP::MULT => val *= num,
-                    OP::ADD => val += num,
-                    OP::CONC => val = concact_num(val, *num),
-                }
-
-                // val only increases with each operation
-                if val > eq[0] {
-                    continue 'comb;
-                }
-            }
-
-            if val == eq[0] {
-                // valid operation, add output number
-                out += val;
-                break;
-            }
-        }
-    }
-
-    out
-}
-*/
+// 2.598
