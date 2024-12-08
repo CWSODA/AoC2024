@@ -8,10 +8,7 @@ pub fn solve(input: &str) -> (usize, usize) {
 fn part1(points: &HashMap<char, Vec<Point>>, grid_size: Point) -> usize {
     let mut nodes: HashSet<Point> = HashSet::new();
 
-    // p1, p2, p3, p4, p5
-    // p1, p2
-    // p1, p3
-    // ... p4, p5
+    // loop through all unique pairs for each char
     for freq in points.values() {
         for i in 0..(freq.len() - 1) {
             let p1 = freq[i];
@@ -33,11 +30,13 @@ fn part1(points: &HashMap<char, Vec<Point>>, grid_size: Point) -> usize {
 fn part2(points: &HashMap<char, Vec<Point>>, grid_size: Point) -> usize {
     let mut nodes: HashSet<Point> = HashSet::new();
 
+    // loop through all unique pairs for each char
     for freq in points.values() {
         for i in 0..(freq.len() - 1) {
             let p1 = freq[i];
             for p2 in freq.iter().skip(i + 1) {
                 let diff = p1.sub(*p2);
+
                 let mut count = 1;
                 while let Some(new_p) = p1.add(diff.mul(count)).in_grid(grid_size) {
                     nodes.insert(new_p);
@@ -51,6 +50,8 @@ fn part2(points: &HashMap<char, Vec<Point>>, grid_size: Point) -> usize {
                 }
             }
         }
+
+        // each point is also a node
         for p in freq {
             nodes.insert(*p);
         }
@@ -79,6 +80,7 @@ fn parse(input: &str) -> (HashMap<char, Vec<Point>>, Point) {
     )
 }
 
+// used to debug
 fn _print_grid(nodes: &HashSet<Point>, grid_size: Point) {
     for y in 0..grid_size.y {
         for x in 0..grid_size.x {
@@ -127,4 +129,5 @@ impl Point {
     }
 }
 
-// 14
+// 14, 34
+// 261, 898
