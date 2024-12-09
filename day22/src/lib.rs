@@ -1,5 +1,6 @@
 pub fn solve(input: &str) -> (usize, usize) {
-    (part1(&points, grid_size), part2(&points, grid_size))
+    parse(input);
+    (part1(), part2())
 }
 
 fn part1() -> usize {
