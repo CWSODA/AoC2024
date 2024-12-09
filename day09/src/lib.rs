@@ -103,15 +103,14 @@ fn checksum(storage: &[Block]) -> u64 {
 }
 
 fn move_file(storage: &mut [Block], file: &File, index: usize) {
-    // println!("Moving file {} from {} to {index}", file.id, file.index);
-    // copy file
-    for i in index..(index + file.size) {
-        storage[i] = Block::ID(file.id);
+    // copy file to index
+    for block in storage.iter_mut().skip(index).take(file.size) {
+        *block = Block::ID(file.id);
     }
 
     // remove file
-    for i in (file.index)..(file.index + file.size) {
-        storage[i] = Block::Empty;
+    for block in storage.iter_mut().skip(file.index).take(file.size) {
+        *block = Block::Empty;
     }
 }
 
@@ -149,18 +148,5 @@ impl File {
     }
 }
 
-// fn check() {
-//     let checksum: u64 = "00992111777.44.333....5555.6666.....8888.."
-//         .chars()
-//         .enumerate()
-//         .map(|(i, ch)| {
-//             if ch.is_numeric() {
-//                 ch.to_digit(10).unwrap() as u64 * (i as u64)
-//             } else {
-//                 0
-//             }
-//         })
-//         .sum();
-
-//     println!("Checksum is {checksum}");
-// }
+// 1928, 2858
+// 6291146824486, 6307279963620
