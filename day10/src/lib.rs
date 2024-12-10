@@ -2,31 +2,16 @@ use std::collections::HashSet;
 
 pub fn solve(input: &str) -> (usize, usize) {
     let (grid, trailheads) = parse(input);
-
-    (part1(&grid, &trailheads), part2(&grid, &trailheads))
-}
-
-fn part1(grid: &[Vec<u32>], trailheads: &[Point]) -> usize {
-    let mut val = 0;
+    let mut score = 0;
+    let mut rating = 0;
     for th in trailheads {
-        // use hashset to count peaks(9) to avoid duplicates
+        // use hashset to count peaks(9) reached by each trailhead to avoid duplicates
         let mut peaks = HashSet::new();
-        find_up(grid, 0, *th, &mut peaks);
-        val += peaks.len();
+        rating += find_up(&grid, 0, th, &mut peaks);
+        score += peaks.len();
     }
 
-    val
-}
-
-fn part2(grid: &[Vec<u32>], trailheads: &[Point]) -> usize {
-    let mut val = 0;
-    for th in trailheads {
-        // use hashset to count peaks(9) to avoid duplicates
-        let mut peaks = HashSet::new();
-        val += find_up(grid, 0, *th, &mut peaks);
-    }
-
-    val
+    (score, rating)
 }
 
 // returns the rating
@@ -35,9 +20,10 @@ fn find_up(grid: &[Vec<u32>], height: u32, point: Point, peaks: &mut HashSet<Poi
     for next_point in get_cross(point) {
         if let Some(next_height) = get_grid(grid, next_point) {
             if next_height == height + 1 {
+                // reached a peak(9)
                 if next_height == 9 {
                     peaks.insert(next_point);
-                    rating += 1;
+                    rating += 1; // increase per path
                     continue;
                 }
                 rating += find_up(grid, next_height, next_point, peaks);
@@ -48,6 +34,7 @@ fn find_up(grid: &[Vec<u32>], height: u32, point: Point, peaks: &mut HashSet<Poi
     rating
 }
 
+// returns number at point, returns None if out of bounds
 fn get_grid(grid: &[Vec<u32>], point: Point) -> Option<u32> {
     if point.x < 0 || point.y < 0 {
         return None;
