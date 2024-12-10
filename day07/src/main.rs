@@ -11,3 +11,6 @@ fn main() {
     let ans = solve(&input, THREAD_COUNT);
     println!("Answer is: {}, {}", ans.0, ans.1);
 }
+
+// 3749, 11387
+// 5702958180383, 92612386119138

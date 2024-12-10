@@ -239,6 +239,3 @@ fn _print_grid(grid: &Vec<Vec<State>>) {
     }
     println!();
 }
-
-// 41, 6
-// 5516, 2008

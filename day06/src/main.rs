@@ -12,3 +12,6 @@ fn main() {
     let ans = solve(&input, THREAD_COUNT);
     println!("Answer is: {}, {}", ans.0, ans.1);
 }
+
+// 41, 6
+// 5516, 2008
