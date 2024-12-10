@@ -9,3 +9,6 @@ fn main() {
     let ans = solve(&input);
     println!("Answer is: {}, {}", ans.0, ans.1);
 }
+
+// 36, 81
+// 674, 1372
