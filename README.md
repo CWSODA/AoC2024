@@ -24,7 +24,7 @@ MacBook Air M1
 |[7](day07)| 0.122s | 01:20:01 | More brute force solutions 🤡!!! I tried to remove combinations that start with the same operators if they pass the target value but I could not get this to be faster than just calculating everything. Something to do with iterating through all the combinations and matching the operators offsets the time reduction 😑. Also used `multi_cartesian_product` from itertools to generate all permutations with replacement cause my brain at 5am can not handle that 🫠.
 |[8](day08)| 0.011s | 00:59:47 | Surprisingly simple today. Finally beat top guy on the private leaderboard (4th this time). Sub 1h today but decided to write this `README` file so no sleep today either...
 |[9](day09)| 0.578s | 01:41:28 | Very straight-forward again today. The time is a lot higher than the others but I don't know how to run it in parallel since each computation relies on the previous ones. Sub 1s is good enough :3
-|[10](day10)| 0.315s | 01:03:29 | Another easy day. Using recursion simplifies the path finding and part2 is just counting the times the recursive function reached 9. The solve time could have been at least 10 minutes faster if I didn't write `break` instead of `continue`. Again, sub 1s so I won't bother multi-threading this.
+|[10](day10)| 0.312s | 01:03:29 | Another easy day. Using recursion simplifies the path finding and part2 is just counting the times the recursive function reached 9. The solve time could have been at least 10 minutes faster if I didn't write `break` instead of `continue`. Again, sub 1s so I won't bother multi-threading this.
 |[11](day11)|
 |[12](day12)|
 |[13](day13)|
