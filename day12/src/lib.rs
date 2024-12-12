@@ -33,8 +33,6 @@ pub fn solve(input: &str) -> (usize, usize) {
 
             // area = region.len() since each point is 1 area
             val1 += region.len() * perim;
-
-            println!("{_plant} has {corners} corners");
             val2 += region.len() * corners;
         }
     }
