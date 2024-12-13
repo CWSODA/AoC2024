@@ -1,15 +1,13 @@
 use itertools::Itertools;
 
 pub fn solve(input: &str) -> (i64, i64) {
-    let machines = parse(input);
-
     let mut sum1 = 0;
     let mut sum2 = 0;
-    for m in machines {
-        if let Some((a, b)) = m.solve(false) {
+    for machine in parse(input) {
+        if let Some((a, b)) = machine.solve(false) {
             sum1 += a * 3 + b;
         }
-        if let Some((a, b)) = m.solve(true) {
+        if let Some((a, b)) = machine.solve(true) {
             sum2 += a * 3 + b;
         }
     }
@@ -24,7 +22,7 @@ fn parse(input: &str) -> Vec<Machine> {
         let mut machine_info = vec![];
         for line in mach.take(3) {
             let mut iter = line
-                .split_terminator(|c: char| !c.is_numeric())
+                .split(|c: char| !c.is_numeric())
                 .filter(|x| !x.is_empty())
                 .map(|ch| ch.parse::<i64>().expect("no_num"));
 
@@ -46,30 +44,26 @@ fn parse(input: &str) -> Vec<Machine> {
 
 #[derive(Clone, Copy, Debug)]
 struct Machine {
-    but_a: Point,
-    but_b: Point,
+    a: Point,
+    b: Point,
     prize: Point,
 }
 
 impl Machine {
-    fn new(but_a: Point, but_b: Point, prize: Point) -> Self {
-        Machine {
-            but_a,
-            but_b,
-            prize,
-        }
+    fn new(a: Point, b: Point, prize: Point) -> Self {
+        Machine { a, b, prize }
     }
 
+    // solves the linear system of equations
+    // A(ax,ay) + B(bx,by) = px,py
     fn solve(&self, is_p2: bool) -> Option<(i64, i64)> {
-        let a = self.but_a;
-        let b = self.but_b;
         let prize = if is_p2 {
             Point::new(self.prize.x + 10000000000000, self.prize.y + 10000000000000)
         } else {
             self.prize
         };
 
-        let det = a.x * b.y - b.x * a.y;
+        let det = self.a.x * self.b.y - self.b.x * self.a.y;
         if det == 0 {
             // no singular solution
             // this line is never reached lol
@@ -80,8 +74,8 @@ impl Machine {
         }
 
         // inverse of the matrix without the scalar (1/det)
-        let x_num = prize.x * b.y - prize.y * b.x;
-        let y_num = -prize.x * a.y + prize.y * a.x;
+        let x_num = prize.x * self.b.y - prize.y * self.b.x;
+        let y_num = -prize.x * self.a.y + prize.y * self.a.x;
 
         // check if is integer
         if x_num % det == 0 && y_num % det == 0 {
