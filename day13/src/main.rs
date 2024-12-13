@@ -9,3 +9,6 @@ fn main() {
     let ans = solve(&input);
     println!("Answer is: {}, {}", ans.0, ans.1);
 }
+
+// Answer for example is: 480, 875318608908
+// Answer is: 27105, 101726882250942
