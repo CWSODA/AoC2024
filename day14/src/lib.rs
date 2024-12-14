@@ -6,37 +6,33 @@ pub fn solve(input: &str, bathroom_size: Point, is_p2: bool) -> (usize, Option<i
     let mut p1 = 0;
 
     let mut bot_copy = bots.clone();
-    let mut t = 0;
-    loop {
+    // tree must be within the LCM of size.x and size.y
+    for t in 0..(bathroom_size.x * bathroom_size.y).max(100) {
         if t == 100 {
             p1 = get_safety_factor(&bot_copy, bathroom_size);
             if !is_p2 {
                 break;
             }
-        } else if is_p2 && (t == bathroom_size.x * bathroom_size.y) {
-            panic!("No tree >:( at {}", bathroom_size.x * bathroom_size.y);
         }
 
         update(&mut bot_copy, bathroom_size);
         if is_p2 && is_tree(&bot_copy) {
-            println!("tree time!");
             time = Some(t + 1);
 
             if t > 100 {
                 break;
             }
         }
-
-        t += 1;
     }
 
-    if let Some(t) = time {
-        let mut bots = bots.to_vec();
-        for _ in 0..t {
-            update(&mut bots, bathroom_size);
-        }
-        _print_grid(&bots, bathroom_size);
-    }
+    // used to print tree
+    // if let Some(t) = time {
+    //     let mut bots = bots.to_vec();
+    //     for _ in 0..t {
+    //         update(&mut bots, bathroom_size);
+    //     }
+    //     _print_grid(&bots, bathroom_size);
+    // }
 
     (p1, time)
 }
@@ -62,7 +58,6 @@ fn update(bots: &mut Vec<Bot>, bathroom_size: Point) {
 
 fn get_safety_factor(bots: &[Bot], size: Point) -> usize {
     let mut quad = [0; 4];
-    let mut val = 1;
 
     for bot in bots {
         assert!(bot.pos.x >= 0 && bot.pos.y >= 0);
@@ -77,6 +72,9 @@ fn get_safety_factor(bots: &[Bot], size: Point) -> usize {
             quad[q] += 1;
         }
     }
+
+    // get product of all quadrants
+    let mut val = 1;
     for q in quad {
         val *= q;
     }
@@ -85,23 +83,7 @@ fn get_safety_factor(bots: &[Bot], size: Point) -> usize {
 }
 
 fn is_tree(bots: &[Bot]) -> bool {
-    // old solution placed here for people to see (its much slower)
-    // will be removed soon
-    // find number of bots with at least one neighbor
-    //
-    // let mut friends = 0;
-    // 'outer: for i in 0..bots.len() {
-    //     for other in (i + 1)..bots.len() {
-    //         if bots[i].pos._is_next_to(bots[other].pos) {
-    //             friends += 1;
-    //             continue 'outer;
-    //         }
-    //     }
-    // }
-
-    // if above threshold then it is probably an image?
-    // friends > bots.len() / 2
-
+    // checks that no bots overlap
     let mut occupied = HashSet::new();
     for bot in bots {
         if !occupied.insert(bot.pos) {
@@ -110,6 +92,24 @@ fn is_tree(bots: &[Bot]) -> bool {
     }
 
     true
+}
+
+fn parse(input: &str) -> Vec<Bot> {
+    let mut bots = vec![];
+
+    for line in input.lines() {
+        let mut nums = line
+            .split(|ch: char| !ch.is_numeric() && ch != '-')
+            .filter(|slice| !slice.is_empty())
+            .map(|slice| slice.parse::<i32>().expect("no num"));
+
+        bots.push(Bot::new(
+            Point::new(nums.next().unwrap(), nums.next().unwrap()),
+            Point::new(nums.next().unwrap(), nums.next().unwrap()),
+        ));
+    }
+
+    bots
 }
 
 // for debug
@@ -131,24 +131,6 @@ fn _print_grid(bots: &[Bot], size: Point) {
         }
     }
     println!();
-}
-
-fn parse(input: &str) -> Vec<Bot> {
-    let mut bots = vec![];
-
-    for line in input.lines() {
-        let mut nums = line
-            .split(|ch: char| !ch.is_numeric() && ch != '-')
-            .filter(|slice| !slice.is_empty())
-            .map(|slice| slice.parse::<i32>().expect("no num"));
-
-        bots.push(Bot::new(
-            Point::new(nums.next().unwrap(), nums.next().unwrap()),
-            Point::new(nums.next().unwrap(), nums.next().unwrap()),
-        ));
-    }
-
-    bots
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -176,11 +158,5 @@ impl Point {
 
     fn add(&self, other: Point) -> Self {
         Point::new(self.x + other.x, self.y + other.y)
-    }
-
-    // legacy stuff that will be deleted later
-    fn _is_next_to(&self, other: Point) -> bool {
-        (self.x <= other.x + 1 && self.x >= other.x - 1)
-            && (self.y <= other.y + 1 && self.y >= other.y - 1)
     }
 }

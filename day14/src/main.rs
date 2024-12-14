@@ -7,5 +7,8 @@ fn main() {
 
     let input = std::fs::read_to_string("input.txt").unwrap();
     let ans = solve(&input, Point::new(101, 103), true);
-    println!("Answer is: {}, {:?}", ans.0, ans.1);
+    println!("Answer is: {}, {:?}", ans.0, ans.1.unwrap());
 }
+
+// Answer for example is: 12
+// Answer is: 224554908, 6644
