@@ -1,5 +1,5 @@
 # Advent of Code 2024
-My solutions to AoC2024 with RUST [Advent of Code 2024](https://adventofcode.com/2024). Hopefully they are not too horrendous (I'm still a begineer 🥺). All except the first 2 days are proudly written at 5am each day to hopefully fix my sleep schedule 🥰. Probably a huge waste of time considering the solve time per day. At least its fun so far.
+My solutions to AoC2024 with RUST [Advent of Code 2024](https://adventofcode.com/2024). Hopefully they are not too horrendous (I'm still a begineer 🥺). All except the first 2 days are proudly written at 5am each day to hopefully fix my sleep schedule 🥰. Probably a huge waste of time considering the solve time per day. Also will be quite reliant on Reddit for help but I will try to limit to hints and only take their approach (not copy-paste code) if I am really stumped.
 
 ## Repo Structure
 Solution for each day is contained within its own folder as a seperate Rust project. Answers for the example and my inputs are at the bottom of each `lib.rs` file (or in `main.rs` if there is no `lib.rs` file).
