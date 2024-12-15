@@ -8,18 +8,18 @@ pub fn solve(input: &str, bathroom_size: Point, is_p2: bool) -> (usize, Option<i
     let mut bot_copy = bots.clone();
     // tree must be within the LCM of size.x and size.y
     for t in 0..(bathroom_size.x * bathroom_size.y).max(100) {
-        if t == 100 {
-            p1 = get_safety_factor(&bot_copy, bathroom_size);
-            if !is_p2 {
+        update(&mut bot_copy, bathroom_size);
+        if is_p2 && is_tree(&bot_copy) {
+            time = Some(t + 1); // since first timestep at t = 0
+
+            if t > 100 {
                 break;
             }
         }
 
-        update(&mut bot_copy, bathroom_size);
-        if is_p2 && is_tree(&bot_copy) {
-            time = Some(t + 1);
-
-            if t > 100 {
+        if t == 99 {
+            p1 = get_safety_factor(&bot_copy, bathroom_size);
+            if !is_p2 {
                 break;
             }
         }
