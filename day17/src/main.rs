@@ -1,4 +1,4 @@
-use day9::solve;
+use day17::solve;
 
 fn main() {
     let input = std::fs::read_to_string("example_p2.txt").unwrap();
