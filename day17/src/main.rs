@@ -1,7 +1,7 @@
 use day9::solve;
 
 fn main() {
-    let input = std::fs::read_to_string("example2.txt").unwrap();
+    let input = std::fs::read_to_string("example_p2.txt").unwrap();
     let (output, min_reg_a) = solve(&input);
     println!("Example: {output}\nMin RegA is {min_reg_a}");
 

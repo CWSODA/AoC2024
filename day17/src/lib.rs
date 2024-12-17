@@ -138,42 +138,25 @@ fn combo(operand: u8, reg: &[u64; 3]) -> u64 {
 fn parse(input: &str) -> ([u64; 3], Vec<u8>) {
     let mut reg = [0; 3];
 
-    let mut iter = input.lines();
+    let mut iter = input.lines().map(|line| {
+        line.split(|ch: char| !ch.is_numeric())
+            .filter(|slice| !slice.is_empty())
+            .map(|slice| slice.parse::<u64>().unwrap())
+            .collect::<Vec<_>>()
+    });
 
-    reg[0] = iter
-        .next()
-        .expect("No first line!")
-        .split(|ch: char| !ch.is_numeric())
-        .filter(|slice| !slice.is_empty())
-        .map(|slice| slice.parse::<u64>().unwrap())
-        .next()
-        .unwrap();
+    reg[0] = *iter.next().expect("No regA!").get(0).unwrap();
 
-    reg[1] = iter
-        .next()
-        .expect("No Second line!")
-        .split(|ch: char| !ch.is_numeric())
-        .filter(|slice| !slice.is_empty())
-        .map(|slice| slice.parse::<u64>().unwrap())
-        .next()
-        .unwrap();
+    reg[1] = *iter.next().expect("No regB!").get(0).unwrap();
 
-    reg[2] = iter
-        .next()
-        .expect("No Third line!")
-        .split(|ch: char| !ch.is_numeric())
-        .filter(|slice| !slice.is_empty())
-        .map(|slice| slice.parse::<u64>().unwrap())
-        .next()
-        .unwrap();
+    reg[2] = *iter.next().expect("No regC!").get(0).unwrap();
 
-    let nums: Vec<_> = iter
+    let nums = iter
         .skip(1)
         .next()
         .expect("No instructions!")
-        .split(|ch: char| !ch.is_numeric())
-        .filter(|slice| !slice.is_empty())
-        .map(|slice| slice.parse::<u8>().unwrap())
+        .iter()
+        .map(|n| *n as u8)
         .collect();
 
     (reg, nums)
