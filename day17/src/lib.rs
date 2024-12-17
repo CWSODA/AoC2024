@@ -1,25 +1,32 @@
-pub fn solve(input: &str) -> u64 {
+pub fn solve(input: &str) -> (String, u64) {
     let (reg, instructions) = parse(input);
 
     // P1
-    let mut output_string = String::new();
-    for num in run(reg, &instructions) {
-        output_string += &format!("{num},");
-    }
+    let mut output_string: String = run(reg, &instructions)
+        .iter()
+        .map(|num| format!("{num},"))
+        .collect();
     output_string.pop();
-    println!("{output_string}");
 
     // P2
     let mut possibles: Vec<u64> = vec![0];
+
+    // counts each chunk of 3-bits
+    // every 3-bits corresponds to one instruction
+    // assuming each cycle shifts regA right by 3 bits
     let mut count = 1;
+
     loop {
-        let mut current_vec = vec![];
+        // MSB matches with later instructions so match slice starting from the end
         let pattern = &instructions[(instructions.len() - count)..];
+        let mut current_vec = vec![];
 
         for possible in possibles {
+            // loops through possible new 3-bit chunk
             for plus in 0b000u64..=0b111u64 {
                 let new_reg = to_reg(possible, plus);
-                // println!("New: {:?}", new_reg);
+
+                // checks if the output matches the pattern
                 if matches(new_reg, pattern, &instructions) {
                     current_vec.push(new_reg[0]);
                 }
@@ -27,13 +34,15 @@ pub fn solve(input: &str) -> u64 {
         }
         possibles = current_vec;
 
-        // println!("Possibles at {count}:");
-        // _print_binary(&possibles);
-
         count += 1;
+
+        // checks if desired number of instructions has been reached
         if count > instructions.len() {
             // smallest number is index 0 of possibles since range from 0b000 to 0b111
-            return possibles[0];
+            return (
+                output_string,
+                *possibles.get(0).expect("No possible value for regA found"),
+            );
         }
     }
 }
@@ -110,9 +119,19 @@ fn matches(mut reg: [u64; 3], pattern: &[u8], instructions: &[u8]) -> bool {
     true
 }
 
-// note that B and C are 0
+// note that B and C are 0, adds new num to previous regA
 fn to_reg(possible: u64, plus: u64) -> [u64; 3] {
     [(possible << 3) + plus, 0, 0]
+}
+
+fn combo(operand: u8, reg: &[u64; 3]) -> u64 {
+    match operand {
+        x if (x <= 3) => x as u64,
+        4 => reg[0],
+        5 => reg[1],
+        6 => reg[1],
+        _ => panic!("Invalid operand"),
+    }
 }
 
 // returns registers, instructions
@@ -158,16 +177,6 @@ fn parse(input: &str) -> ([u64; 3], Vec<u8>) {
         .collect();
 
     (reg, nums)
-}
-
-fn combo(operand: u8, reg: &[u64; 3]) -> u64 {
-    match operand {
-        x if (x <= 3) => x as u64,
-        4 => reg[0],
-        5 => reg[1],
-        6 => reg[1],
-        _ => panic!("Invalid operand"),
-    }
 }
 
 // for debug
