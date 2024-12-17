@@ -1,0 +1,15 @@
+Register A: 0
+Register B: 0
+Register C: 0
+
+Program: 2,4,1,7,7,5,1,7,4,6,0,3,5,5,3,0
+
+2,4,1,7,7,5,1,7,4,6,0,3,5,5,3,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,1,
+
+minimum of 
+100000000000000
+35184372088832
+
+// just messing around to find a pattern in the output
