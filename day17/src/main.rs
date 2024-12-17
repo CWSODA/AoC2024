@@ -9,3 +9,11 @@ fn main() {
     print!("\nReal Input: ");
     println!("RegA is {}", solve(&input));
 }
+
+/*
+Example: 0,3,5,4,3,0
+RegA is 117440
+
+Real Input: 1,4,6,1,6,4,3,0,3
+RegA is 265061364597659
+*/
