@@ -11,8 +11,8 @@ pub fn solve(input: &str, grid_size: usize, bytes: usize) -> (u32, Vec2) {
         .unwrap();
 
     let mut exit_blocker = None;
-    // has to be at least grid_size bytes to block exit
-    for byte in grid_size..corrupted.len() {
+    // bytes for part1 is guarenteed to work
+    for byte in bytes..corrupted.len() {
         if !has_exit(&corrupted[0..=byte], grid_size) {
             exit_blocker = Some(corrupted[byte]);
             break;
@@ -25,6 +25,7 @@ pub fn solve(input: &str, grid_size: usize, bytes: usize) -> (u32, Vec2) {
 fn walk(corrupted: &[Vec2], grid_size: usize) -> HashMap<Vec2, u32> {
     let start_pos = Vec2::new(0, 0);
     let end_pos = Vec2::new(grid_size, grid_size);
+    let corrupted: HashSet<_> = corrupted.iter().map(|v| *v).collect();
     let mut costs = HashMap::new();
     let mut queue = BinaryHeap::new();
     queue.push(Reverse((0, start_pos)));
@@ -56,23 +57,36 @@ fn walk(corrupted: &[Vec2], grid_size: usize) -> HashMap<Vec2, u32> {
 
 fn has_exit(corrupted: &[Vec2], grid_size: usize) -> bool {
     let start_pos = Vec2::new(0, 0);
+    let end_pos = Vec2::new(grid_size, grid_size);
     let mut seen = HashSet::<Vec2>::from([start_pos]);
+    let corrupted = corrupted.iter().map(|v| *v).collect();
 
-    fill(corrupted, &mut seen, start_pos, grid_size);
-
-    // _print_grid(corrupted, &seen, grid_size);
-    seen.contains(&Vec2::new(grid_size, grid_size))
+    fill(&corrupted, &mut seen, &start_pos, &end_pos, grid_size)
 }
 
-fn fill(corrupted: &[Vec2], seen: &mut HashSet<Vec2>, last_pos: Vec2, grid_size: usize) {
+fn fill(
+    corrupted: &HashSet<Vec2>,
+    seen: &mut HashSet<Vec2>,
+    last_pos: &Vec2,
+    end_pos: &Vec2,
+    grid_size: usize,
+) -> bool {
     for pos in last_pos.around(grid_size) {
+        if pos == *end_pos {
+            seen.insert(*end_pos);
+            return true;
+        }
         if !corrupted.contains(&pos) {
             if seen.insert(pos) {
                 // if newly inserted position, fill again
-                fill(corrupted, seen, pos, grid_size);
+                if fill(corrupted, seen, &pos, end_pos, grid_size) {
+                    return true;
+                }
             }
         }
     }
+
+    false
 }
 
 fn parse(input: &str) -> Vec<Vec2> {
