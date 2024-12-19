@@ -1,4 +1,4 @@
-use day9::solve;
+use day19::solve;
 
 fn main() {
     let input = std::fs::read_to_string("example.txt").unwrap();
@@ -9,3 +9,8 @@ fn main() {
     let ans = solve(&input);
     println!("Answer is: {}, {}", ans.0, ans.1);
 }
+
+/*
+Answer for example is: 6, 16
+Answer is: 251, 616957151871345
+*/
