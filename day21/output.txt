@@ -1,0 +1,22 @@
+for 029A:
+
+given shortest:
+<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+
+v<<A>>^A<A>AvA<^AA>A<vAAA>^A
+v<<A>>^A<A>AvA<^AA>A<vAAA>^A
+v<<A>>^A<A>AvA^<AA>A<vAAA>^A
+v<<A>>^A<A>AvA<^AA>Av<AAA>^A
+v<<A>>^A<A>AvA^<AA>Av<AAA>^A
+v<<A>>^A<A>AvA<^AA>A<vAAA^>A
+v<<A>>^A<A>AvA^<AA>A<vAAA^>A
+v<<A>>^A<A>AvA<^AA>Av<AAA^>A
+v<<A>>^A<A>AvA^<AA>Av<AAA^>A
+v<<A>>^A<A>A<AA>vA^A<vAAA>^A
+v<<A>>^A<A>A<AAv>A^A<vAAA>^A
+v<<A>>^A<A>A<AA>vA^Av<AAA>^A
+v<<A>>^A<A>A<AAv>A^Av<AAA>^A
+v<<A>>^A<A>A<AA>vA^A<vAAA^>A
+v<<A>>^A<A>A<AAv>A^A<vAAA^>A
+v<<A>>^A<A>A<AA>vA^Av<AAA^>A
+v<<A>>^A<A>A<AAv>A^Av<AAA^>A
