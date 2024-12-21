@@ -1,78 +1,124 @@
+use std::{collections::HashMap, usize};
+
 pub fn solve(input: &str) -> (usize, usize) {
     let codes: Vec<_> = input.lines().collect();
 
-    let mut sum = 0;
+    let mut p1_sum = 0;
+    let mut p2_sum = 0;
+    let mut num_cache: HashMap<(char, char, usize), usize> = HashMap::new();
+    let mut dir_cache: HashMap<(Button, Button, usize), usize> = HashMap::new();
     for code in codes {
+        // find value of the code, removes trailing 'A' before parse
         let mut number = code.to_string();
         number.pop();
+        let number = number.parse::<usize>().unwrap();
 
-        let shortest = get_shortest(code);
-        println!("Shortest for code {code} is {shortest}");
-        sum += number.parse::<usize>().unwrap() * shortest;
+        p1_sum += get_shortest(code, 2, &mut num_cache, &mut dir_cache) * number;
+        p2_sum += get_shortest(code, 25, &mut num_cache, &mut dir_cache) * number;
     }
 
-    (sum, 0)
+    (p1_sum, p2_sum)
 }
 
-fn get_shortest(code: &str) -> usize {
-    // num <- dir <- dir <- human_dir
-    // bot starts from button A
-    let code = "A".to_string() + code;
+fn get_shortest(
+    code: &str,
+    level: usize,
+    num_cache: &mut HashMap<(char, char, usize), usize>,
+    dir_cache: &mut HashMap<(Button, Button, usize), usize>,
+) -> usize {
+    // cache of (from, to, level), minimum buttons in last
+    // level 1 is the human dirpad
 
-    let mut dirbot_1: Vec<Vec<Button>> = vec![vec![]];
+    let mut sum = shortest_numpad(
+        'A',
+        code.chars().next().unwrap(),
+        level,
+        num_cache,
+        dir_cache,
+    );
+
     for (from, to) in code.chars().zip(code.chars().skip(1)) {
-        let mut temp = vec![];
-
-        for numpad_1 in numpad_move(from, to) {
-            for pos in &dirbot_1 {
-                let mut current = pos.clone();
-                current.extend_from_slice(&numpad_1);
-                temp.push(current);
-            }
-        }
-
-        dirbot_1 = temp;
+        sum += shortest_numpad(from, to, level, num_cache, dir_cache);
     }
 
-    let mut dirbot_2 = vec![];
-    for possibles in &dirbot_1 {
-        dirbot_2.append(&mut get_possibles(possibles));
-    }
-
-    let mut human = vec![];
-    for possibles in &dirbot_2 {
-        human.append(&mut get_possibles(possibles));
-    }
-
-    let mut min = human[0].len();
-    for possible in human {
-        if possible.len() < min {
-            min = possible.len()
-        }
-    }
-
-    min
+    sum
 }
 
-fn get_possibles(input: &[Button]) -> Vec<Vec<Button>> {
-    // starts from A button
-    let mut possibles: Vec<Vec<Button>> = dirpad_move(&Button::Press, &input[0]);
+// A       0   2       9       A
+// A   <   A ^ A >  ^^ A  vvv  A
+// Av<<A>>^A<A>AvA<^AA>A<vAAA>^A
 
-    for (from, to) in input.iter().zip(input.iter().skip(1)) {
-        let mut temp = vec![];
-
-        for next_bot in dirpad_move(from, to) {
-            for pos in &possibles {
-                let mut current = pos.clone();
-                current.extend_from_slice(&next_bot);
-                temp.push(current);
-            }
-        }
-
-        possibles = temp;
+fn shortest_dirpad(
+    from: &Button,
+    to: &Button,
+    level: usize,
+    cache: &mut HashMap<(Button, Button, usize), usize>,
+) -> usize {
+    if from == to {
+        return 1;
     }
 
-    possibles
+    let key = (*from, *to, level);
+    if let Some(&cost) = cache.get(&key) {
+        return cost;
+    }
+    if level == 1 {
+        let cost = dirpad_move(from, to)[0].len();
+        cache.insert(key, cost);
+
+        return cost;
+    }
+
+    // find cost
+    let mut min_cost = usize::MAX;
+    for possible in dirpad_move(from, to) {
+        let mut current_cost = shortest_dirpad(&Button::Press, &possible[0], level - 1, cache);
+
+        for (button1, button2) in possible.iter().zip(possible.iter().skip(1)) {
+            current_cost += shortest_dirpad(button1, button2, level - 1, cache);
+        }
+
+        if current_cost < min_cost {
+            min_cost = current_cost;
+        }
+    }
+
+    cache.insert(key, min_cost);
+    min_cost
+}
+
+fn shortest_numpad(
+    from: char,
+    to: char,
+    level: usize,
+    num_cache: &mut HashMap<(char, char, usize), usize>,
+    dir_cache: &mut HashMap<(Button, Button, usize), usize>,
+) -> usize {
+    if from == to {
+        return 1;
+    }
+
+    let key = (from, to, level);
+    if let Some(&cost) = num_cache.get(&key) {
+        return cost;
+    }
+
+    // find cost
+    let mut min_cost = usize::MAX;
+    for possible in numpad_move(from, to) {
+        let mut current_cost = shortest_dirpad(&Button::Press, &possible[0], level, dir_cache);
+
+        for (button1, button2) in possible.iter().zip(possible.iter().skip(1)) {
+            current_cost += shortest_dirpad(button1, button2, level, dir_cache);
+        }
+
+        if current_cost < min_cost {
+            min_cost = current_cost;
+        }
+    }
+
+    num_cache.insert(key, min_cost);
+    min_cost
 }
 
 fn numpad_move(from: char, to: char) -> Vec<Vec<Button>> {
