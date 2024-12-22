@@ -44,18 +44,10 @@ pub fn solve(input: &str) -> (u64, u64) {
         sum += secret;
     }
 
-    let mut best_price = 0;
-    let mut best_key = [0; 4];
-    for (key, price) in futures {
-        if price > best_price {
-            best_price = price;
-            best_key = key;
-        }
-    }
-
-    println!("KEY: {:?}", best_key);
-
-    (sum, best_price)
+    (
+        sum,
+        *futures.values().max().expect("Failed to get best price!"),
+    )
 }
 
 fn get_changes(sequence: &VecDeque<i8>) -> [i8; 4] {
