@@ -1,12 +1,23 @@
 use core::panic;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-pub fn solve(input: &str) -> (u64, usize) {
+use itertools::Itertools;
+
+pub fn solve(input: &str, nbad_pairs: Option<usize>) -> (u64, String) {
     let (initials, gates) = parse(input);
-    (part1(&initials, &gates), part2())
+
+    let p1 = run_sim(&initials, &gates);
+
+    let p2 = if let Some(nbad_pairs) = nbad_pairs {
+        bad_gates(&initials, &gates, nbad_pairs)
+    } else {
+        String::new()
+    };
+
+    (p1, p2)
 }
 
-fn part1(initials: &HashMap<&str, bool>, gates: &[Gate]) -> u64 {
+fn run_sim<'a>(initials: &HashMap<&'a str, bool>, gates: &[Gate<'a>]) -> (u64) {
     let mut gates = gates.to_vec();
     let mut values = initials.clone();
 
@@ -30,18 +41,83 @@ fn part1(initials: &HashMap<&str, bool>, gates: &[Gate]) -> u64 {
         }
     }
 
-    let mut output = 0;
-    for (gate, val) in values {
-        if val && gate.starts_with('z') {
-            output += 2u64.pow(gate[1..].parse().unwrap());
+    gate_value('z', &values)
+}
+
+fn bad_gates(initials: &HashMap<&str, bool>, gates: &[Gate], nbad_pairs: usize) -> String {
+    let sum = gate_value('x', &initials) + gate_value('y', &initials);
+
+    for bad_pairs in gates
+        .iter()
+        .tuple_combinations::<(_, _)>()
+        .combinations(nbad_pairs)
+    {
+        // checks if the pairs have all unique gates
+        let mut seen = HashSet::new();
+        for bad_pair in &bad_pairs {
+            seen.insert(bad_pair.0);
+            seen.insert(bad_pair.1);
+        }
+        if seen.len() != nbad_pairs * 2 {
+            continue;
+        }
+
+        // creates list of gates
+        let mut changed_gates = gates
+            .iter()
+            .filter(|g| !seen.contains(g))
+            .cloned()
+            .collect::<Vec<_>>();
+
+        // create the new gates with swapped outputs
+        let mut changed_outs = vec![];
+        for (g1, g2) in bad_pairs {
+            changed_gates.push(Gate {
+                i1: g1.i1,
+                i2: g1.i2,
+                out: g2.out,
+                logic: g1.logic,
+            });
+            changed_gates.push(Gate {
+                i1: g2.i1,
+                i2: g2.i2,
+                out: g1.out,
+                logic: g2.logic,
+            });
+
+            changed_outs.push(g1.out);
+            changed_outs.push(g2.out);
+        }
+
+        let z = run_sim(initials, &changed_gates);
+
+        println!("{sum} = {z}?");
+        // checks if x+y = z
+        if sum == z {
+            // yay!!!
+            changed_outs.sort();
+            let mut ans = String::new();
+            for out in changed_outs {
+                ans += out;
+                ans += ",";
+            }
+
+            ans.pop();
+            return ans;
         }
     }
 
-    output
+    unreachable!()
 }
 
-fn part2() -> usize {
-    0
+fn gate_value(ch: char, values: &HashMap<&str, bool>) -> u64 {
+    let mut output = 0;
+    for (gate, &val) in values {
+        if val && gate.starts_with(ch) {
+            output += 2u64.pow(gate[1..].parse().unwrap());
+        }
+    }
+    output
 }
 
 fn parse(input: &str) -> (HashMap<&str, bool>, Vec<Gate>) {
@@ -76,7 +152,7 @@ fn parse(input: &str) -> (HashMap<&str, bool>, Vec<Gate>) {
     (initials, gates)
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 struct Gate<'a> {
     i1: &'a str,
     i2: &'a str,
@@ -84,7 +160,7 @@ struct Gate<'a> {
     logic: Logic,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum Logic {
     And,
     Or,
@@ -98,12 +174,18 @@ mod test {
     #[test]
     fn p1_small() {
         let input = std::fs::read_to_string("example.txt").unwrap();
-        assert_eq!(solve(&input).0, 4)
+        assert_eq!(solve(&input, None).0, 4)
     }
 
     #[test]
     fn p1_big() {
         let input = std::fs::read_to_string("example_big.txt").unwrap();
-        assert_eq!(solve(&input).0, 2024)
+        assert_eq!(solve(&input, None).0, 2024)
+    }
+
+    #[test]
+    fn p2() {
+        let input = std::fs::read_to_string("example_p2.txt").unwrap();
+        assert_eq!(solve(&input, Some(2)).1, "z00,z01,z02,z05")
     }
 }
