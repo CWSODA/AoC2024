@@ -1,4 +1,4 @@
-use hashbrown::HashSet;
+use hashbrown::{HashMap, HashSet};
 
 #[cfg(test)]
 mod tests;
@@ -42,39 +42,56 @@ fn find_largest_party(
     connections: &HashSet<Connection<&str>>,
     computers: &HashSet<&str>,
 ) -> String {
-    let mut parties = computers
-        .iter()
-        .map(|comp| vec![*comp])
-        .collect::<HashSet<_>>();
+    let mut parties = HashMap::new();
+
+    // create new clique that has possible further additions
+    // excludes itself
+    for pc in computers {
+        let mut possibles = computers.clone();
+        possibles.remove(pc);
+        parties.insert(vec![*pc], possibles);
+    }
 
     loop {
-        let mut larger_party = HashSet::new();
+        let mut larger_party = HashMap::new();
         // goes through every previously valid party
-        for party in &parties {
+        for (party, possibles) in &parties {
+            let mut passing = vec![];
+            let mut new_possibles = possibles.clone();
+
             // adds another pc if it is unique
-            'new_pc: for new_pc in computers {
+            'new_pc: for new_pc in possibles {
                 if party.contains(new_pc) {
-                    continue;
-                }
-
-                let mut new_party = party.clone();
-                new_party.push(*new_pc);
-                new_party.sort();
-
-                if larger_party.contains(&new_party) {
-                    continue;
+                    panic!("shouldnt happen");
                 }
 
                 // checks if all previous pcs have connections to current one
                 // previous pc are guarenteed to connect to each other already
                 for old_pc in party {
                     if !connections.contains(&Connection::new(*old_pc, *new_pc)) {
+                        new_possibles.remove(new_pc);
                         continue 'new_pc;
                     }
                 }
 
-                // new_pc is connected to all old_pcs so party is valid
-                larger_party.insert(new_party);
+                // is in party!
+                passing.push(*new_pc);
+            }
+
+            for new_pc in passing {
+                let mut new_p = new_possibles.clone();
+                new_p.remove(new_pc);
+
+                let mut new_party = party.clone();
+                new_party.push(new_pc);
+                new_party.sort();
+
+                if let Some(other_p) = larger_party.get_mut(&new_party) {
+                    *other_p = merge_possibles(other_p, &new_p);
+                } else {
+                    // new_pc is connected to all old_pcs so party is valid
+                    larger_party.insert(new_party, new_p);
+                }
             }
         }
 
@@ -85,22 +102,27 @@ fn find_largest_party(
         parties = larger_party;
     }
 
-    // there should only be one largest party
-    for party in &parties {
-        println!("Party: ");
-        for pc in party {
-            print!(" {pc} ")
-        }
-    }
     assert!(parties.len() == 1);
 
     let mut output = String::new();
-    let largest_party = parties.iter().next().unwrap();
+    let (largest_party, _) = parties.iter().next().unwrap();
     for computer in largest_party {
         output.push_str(computer);
         output.push(',');
     }
     output.pop();
+    output
+}
+
+fn merge_possibles<'a>(a: &HashSet<&'a str>, b: &HashSet<&'a str>) -> HashSet<&'a str> {
+    let mut output = HashSet::new();
+
+    for pc in a {
+        if b.contains(pc) {
+            output.insert(*pc);
+        }
+    }
+
     output
 }
 
