@@ -1,13 +1,14 @@
-use std::collections::HashSet;
+use hashbrown::HashSet;
 
-use itertools::Itertools;
+#[cfg(test)]
+mod tests;
 
 pub fn solve(input: &str) -> (usize, String) {
     let (connections, computers) = parse(input);
 
     (
         part1(&connections, &computers),
-        part2(&connections, &computers),
+        find_largest_party(&connections, &computers),
     )
 }
 
@@ -19,8 +20,8 @@ fn part1(connections: &HashSet<Connection<&str>>, computers: &HashSet<&str>) -> 
                 continue;
             }
 
-            if connections.contains(&Connection::new(c1, c3))
-                && connections.contains(&Connection::new(c2, c3))
+            if connections.contains(&Connection::new(*c1, *c3))
+                && connections.contains(&Connection::new(*c2, *c3))
             {
                 triplets.insert(Triplet::new(c1, c2, c3));
             }
@@ -37,32 +38,64 @@ fn part1(connections: &HashSet<Connection<&str>>, computers: &HashSet<&str>) -> 
     p1
 }
 
-fn part2(connections: &HashSet<Connection<&str>>, computers: &HashSet<&str>) -> String {
-    let mut party_size = 2;
-    let mut largest_party = vec![];
-    'size: loop {
-        println!("Party Size of {party_size}");
-        'party: for party in computers.iter().combinations(party_size) {
-            // loop through all connections
-            for c1 in 0..party.len() {
-                for c2 in (c1 + 1)..party.len() {
-                    // not a party if one connection is bad
-                    if !connections.contains(&Connection::new(party[c1], party[c2])) {
-                        continue 'party;
+fn find_largest_party(
+    connections: &HashSet<Connection<&str>>,
+    computers: &HashSet<&str>,
+) -> String {
+    let mut parties = computers
+        .iter()
+        .map(|comp| vec![*comp])
+        .collect::<HashSet<_>>();
+
+    loop {
+        let mut larger_party = HashSet::new();
+        // goes through every previously valid party
+        for party in &parties {
+            // adds another pc if it is unique
+            'new_pc: for new_pc in computers {
+                if party.contains(new_pc) {
+                    continue;
+                }
+
+                let mut new_party = party.clone();
+                new_party.push(*new_pc);
+                new_party.sort();
+
+                if larger_party.contains(&new_party) {
+                    continue;
+                }
+
+                // checks if all previous pcs have connections to current one
+                // previous pc are guarenteed to connect to each other already
+                for old_pc in party {
+                    if !connections.contains(&Connection::new(*old_pc, *new_pc)) {
+                        continue 'new_pc;
                     }
                 }
+
+                // new_pc is connected to all old_pcs so party is valid
+                larger_party.insert(new_party);
             }
-            // if all connections is fine
-            largest_party = party;
-            party_size += 1;
-            continue 'size;
         }
-        // if no party of the size is found, break
-        break;
+
+        // break if no larger party is found
+        if larger_party.is_empty() {
+            break;
+        }
+        parties = larger_party;
     }
 
-    largest_party.sort();
+    // there should only be one largest party
+    for party in &parties {
+        println!("Party: ");
+        for pc in party {
+            print!(" {pc} ")
+        }
+    }
+    assert!(parties.len() == 1);
+
     let mut output = String::new();
+    let largest_party = parties.iter().next().unwrap();
     for computer in largest_party {
         output.push_str(computer);
         output.push(',');
@@ -76,9 +109,9 @@ fn parse(input: &str) -> (HashSet<Connection<&str>>, HashSet<&str>) {
     let connections = input
         .lines()
         .map(|line| {
-            let mut comp = line.split('-');
-            let c1 = comp.next().expect("No first computer!");
-            let c2 = comp.next().expect("No second computer!");
+            let mut pcs = line.split('-');
+            let c1 = pcs.next().expect("No first computer!");
+            let c2 = pcs.next().expect("No second computer!");
             computers.insert(c1);
             computers.insert(c2);
             Connection::new(c1, c2)
